@@ -1,0 +1,277 @@
+{
+  "name": "ClearInbox",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            },
+            {}
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        -48
+      ],
+      "id": "b0906632-4c34-4fd5-9da2-c1f608706265",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0zDg9b4HMkMJh0qj",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From.split('<')[1].split('>')[0] }}",
+        "subject": "=Re: {{ $(\"Gmail Trigger\").item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $('Open AI').item.json.output[0].content[0].text.match(/\"suggested_reply\"\\s*:\\s*\"([^\"]+)\"/)[1] }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        -48
+      ],
+      "id": "cc333238-7b1c-4017-a501-6066f343b5e5",
+      "name": "Send a message",
+      "webhookId": "e5de5edf-4ea2-490c-b434-b78a040607b2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0zDg9b4HMkMJh0qj",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are ClearInbox, an intelligent email assistant.\n\nAnalyze the following email and return a structured JSON response with:\n1. \"category\": one of [Complaint, Query, Feedback, Urgent, Spam]\n2. \"priority\": one of [High, Medium, Low]\n3. \"summary\": one sentence summary of the email\n4. \"suggested_reply\": a short, professional reply to send back\n\nEmail Subject: {{ $json.Subject }}\nEmail Body: {{ $json.snippet }}\n\nReturn ONLY valid JSON. No extra text."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        -48
+      ],
+      "id": "adc49992-33b7-471c-ae66-79e6d5018bf2",
+      "name": "Open AI",
+      "credentials": {
+        "openAiApi": {
+          "id": "9WdRZnNazwqIqCEr",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12-lNYL0_8Zf2MCxJva3XsK8i_kekad5Eq6X8mvxt17g",
+          "mode": "list",
+          "cachedResultName": "ClearInbox - Query Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12-lNYL0_8Zf2MCxJva3XsK8i_kekad5Eq6X8mvxt17g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12-lNYL0_8Zf2MCxJva3XsK8i_kekad5Eq6X8mvxt17g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DATE": "={{ $now }}",
+            "SENDER": "={{ $('Gmail Trigger').item.json.From }}",
+            "SUBJECT": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "CATEGORY": "={{ $('Open AI').item.json.output[0].content[0].text.match(/\"category\"\\s*:\\s*\"([^\"]+)\"/)[1] }}",
+            "SUMMARY": "={{ $('Open AI').item.json.output[0].content[0].text.match(/\"summary\"\\s*:\\s*\"([^\"]+)\"/)[1] }}",
+            "SUGGESTED REPLY": "={{ $('Open AI').item.json.output[0].content[0].text.match(/\"suggested_reply\"\\s*:\\s*\"([^\"]+)\"/)[1] }}",
+            "PRIORITY": "={{ $('Open AI').item.json.output[0].content[0].text.match(/\"priority\"\\s*:\\s*\"([^\"]+)\"/)[1] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SENDER",
+              "displayName": "SENDER",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SUBJECT",
+              "displayName": "SUBJECT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CATEGORY",
+              "displayName": "CATEGORY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PRIORITY",
+              "displayName": "PRIORITY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SUMMARY",
+              "displayName": "SUMMARY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SUGGESTED REPLY",
+              "displayName": "SUGGESTED REPLY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        -48
+      ],
+      "id": "b78afe13-c467-4793-a429-e7b4b5aaa2f1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Mzf5fk9OX800O03T",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Open AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open AI": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "201c76b6-8d4b-4593-9f59-52e83a161330",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a3919f05e7e0c92a578e8e1c908695ccfec88371d692fe391c71c20a8a985c8"
+  },
+  "id": "RNbH8yxIcMHNqxcE",
+  "tags": [
+    {
+      "name": "AI Customer Query Handl",
+      "id": "eUPP10eiuX9DI46U",
+      "updatedAt": "2026-04-30T11:29:57.976Z",
+      "createdAt": "2026-04-30T11:29:57.976Z"
+    }
+  ]
+}
